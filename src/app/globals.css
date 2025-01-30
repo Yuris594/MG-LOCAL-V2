@@ -1,0 +1,82 @@
+.container {
+  width: auto;
+  height: auto;
+  display: auto;
+  justify-content: center;
+  margin: 1%;
+  align-items: center;
+  padding: auto;
+  
+}
+
+.containers {
+  display: flex;
+  justify-content: center;
+  margin: 2%;
+  align-items: center;
+  padding: auto;
+}
+
+.MuiDataGrid-columnHeaders {
+  background-color: #e9ecef;
+  color: rgb(0, 0, 0);
+}
+
+
+.MuiDataGrid-footerContainer {
+  background-color: #d3d3d300;
+
+}
+
+.navlink {
+  font-weight: bold;
+}
+
+.color {
+  color: #d8e8f7
+}
+
+
+.login-content {
+  background-color: #eeeeee;
+  height: 1120px;
+}
+
+
+.column {
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .column {
+    width: 50%;
+  }
+}
+
+
+.total-cell {
+  color: rgb(0, 255, 0);
+}
+
+.pedido-cell {
+  color: rgb(7, 165, 152)
+}
+
+.autor-cell {
+  color: rgb(14, 58, 180)
+}
+
+.plazo-cell {
+  color: rgb(255, 1, 1)
+}
+  
+.header-bold {
+  font-weight: bold;
+  font-size: large;
+  font-family: 'Times New Roman', Times, serif;
+}
+
+img {
+  width: 100%;
+  border-radius: 15px;
+}
