@@ -490,6 +490,7 @@ export const PedidosC = () => {
             variant="standard"
             //defaultValue={clienteP?.RUBRO3 || ""}
             size="small"
+            disabled 
             sx={{ width: "95%" }}
           />
         </Grid>
@@ -501,6 +502,7 @@ export const PedidosC = () => {
             variant="standard"
             //defaultValue={clienteP?.RUBRO4 || ""}
             size="small"
+            disabled
             sx={{ width: "100%" }}
           />
         </Grid>

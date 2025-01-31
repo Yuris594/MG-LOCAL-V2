@@ -69,6 +69,7 @@ const Clientes = () => {
         setClientesFiltrados(datos);
         setTablaClientes(datos);
         setCargando(false);
+        console.log(datos)
       } catch (error) {
         console.log(error)
       }

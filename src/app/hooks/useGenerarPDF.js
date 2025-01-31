@@ -95,7 +95,22 @@ const useGenerarPDF = (clienteP = {}, productosP = [], sumaSaldoTotalDESC = {}) 
       body: dataToPrint, 
       styles,
       startY: 150,
-      theme:'plain',
+      theme: 'grid',
+      styles: {
+        lineColor: [0, 0, 0], 
+        lineWidth: 0.5, 
+        font: "times",
+        fontStyle: "normal",
+        textColor: [0, 0, 0],
+        fontSize: 8,
+      },
+      headStyles: {
+        fillColor: false, 
+        textColor: [0, 0, 0], 
+        fontStyle: 'bold', 
+        lineWidth: 0.5, 
+        lineColor: [0, 0, 0]
+      },
       columnStyles: { cellWidth: "auto" },
     });
 
@@ -111,7 +126,6 @@ const useGenerarPDF = (clienteP = {}, productosP = [], sumaSaldoTotalDESC = {}) 
       pdf.text(`MODIFICADO POR: ${clienteP.U_EDITADOPOR}`, 350, pdf.autoTable.previous.finalY + 65);
       pdf.text(`AUTORIZADO EN CARTERA POR: ${clienteP.VENDEDOR}`, 12, pdf.autoTable.previous.finalY + 80);
       pdf.text(`FECHA AUTORIZADO: ${clienteP.U_EDITADOPOR}`, 350, pdf.autoTable.previous.finalY + 80);
-      pdf.text("________________________________________________________________________________________", 12, pdf.autoTable.previous.finalY + 90);
       pdf.text(`${fecha}`, 12, pdf.autoTable.previous.finalY + 103);
     }
 

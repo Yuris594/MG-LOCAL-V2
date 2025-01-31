@@ -15,17 +15,15 @@ import PhoneIcon from "@mui/icons-material/Phone";
 import Banner from "@/app/components/banner/banner";
 import DeleteIcon from "@mui/icons-material/Delete";
 import CancelIcon from "@mui/icons-material/Cancel";
-import Favorite from '@mui/icons-material/Favorite';
 import UseImportoExcel from "@/app/hooks/useImportoExcel";
 import StarBorderIcon from '@mui/icons-material/StarBorder';
 import LocationOnIcon from "@mui/icons-material/LocationOn";
 import EmojiPeopleIcon from '@mui/icons-material/EmojiPeople';
 import ClientesGlobal from "../../clients/clientesGlobal/page";
 import LocationCityIcon from '@mui/icons-material/LocationCity';
-import FavoriteBorder from '@mui/icons-material/FavoriteBorder';
 import { useCallback, useEffect, useRef, useState } from "react";
 import { DataGrid, GridRowModes, GridActionsCellItem } from "@mui/x-data-grid";
-import { Box, Button, ButtonGroup, Checkbox, List, ListItem, ListItemText, Modal,
+import { Autocomplete, Box, Button, ButtonGroup, Checkbox, Modal,
 Paper, TextField, Typography, useMediaQuery } from "@mui/material";
 
 
@@ -50,15 +48,17 @@ const CrearPedido = () => {
   const inputRef = useRef();
   const router = useRouter();
   const { auth, cliente } = useAuth();
+  const [names, setNames] = useState({});
   const [notas, setNotas] = useState("");
   const [finac, setFinac] = useState("");
+  const [boton, setBoton] = useState(true);
   const [total, setTotal] = useState("0");
   const [open, setOpen] = useState(false);
   const [rubro2, setRubro2] = useState("");
   const [openM, setOpenM] = useState(false);
-  const [openE, setOpenE] = useState(false);
   const [busqueda, setBusqueda] = useState("");
   const [subTotal, setSubTotal] = useState("0");
+  const [seleccion, setSeleccion] = useState("");
   const [documento, setDocumento] = useState("");
   const [productos, setProductos] = useState([]);
   const [especial, setEspecial] = useState(false);
@@ -68,7 +68,6 @@ const CrearPedido = () => {
   const [tablaProducto, setTablaProducto] = useState([]);
   const [rowModesModel, setRowModesModel] = useState({});
   const [selectedData, setSelectedData] = useState(null);
-  const [seleccion, setSeleccion] = useState('CREADO POR');
   const [clienteP, setClienteP] = useState(cliente?.[0] || {});
   const [articulosSeleccionados, setArticulosSeleccionados] = useState([]);
   
@@ -76,8 +75,6 @@ const CrearPedido = () => {
   const handleCloseM = () => setOpenM(false);
   const handleOpenC = () => setOpen(true);
   const handleCloseC = () => setOpen(false);
-  const handleOpenE = () => setOpenE(true);
-  const handleCloseE = () => setOpenE(false);
   const isSmallScreen = useMediaQuery("(max-width: 600px)");
 
   useEffect(() => {
@@ -130,24 +127,24 @@ const CrearPedido = () => {
     CalcularTotales(articulosImportados);
   };
 
-
-  const names = {
-    "PEDIDO LOCAL": "61",
-    "TELEMERCADEO 1": "301",
-    "TELEMERCADEO 2": "300",
-    "PUNTO NARANJA I.": "AA",
-    "PUNTO NARANJA E.": "EE",
-  };
-
   useEffect(() => {
     const fetchCodVenData = async () => {
       try {
-        const response = await fetch(Global.url + '/consecutivo/list', {
+        const response = await fetch('http://localhost:3010/api/consecutivo/list', {
           method: "GET",
-          headers: { "Content-Type" : "application/json" }
+          headers: { "Content-Type": "application/json" }
         });
         const data = await response.json();
         setCodVenData(data);
+
+        const namesMap = data.reduce((acc, item) => {
+          if (item.tipo_pedido && item.Codven) {
+            acc[item.tipo_pedido] = item.Codven; 
+          }
+          return acc;
+        }, {});
+
+        setNames(namesMap);
       } catch (error) {
         console.error("Error al obtener los datos de CodVen:", error);
       }
@@ -155,26 +152,34 @@ const CrearPedido = () => {
 
     fetchCodVenData();
   }, []);
+
+
+  const handleSelect = (event, value) => {
+    if (value && names[value]) {
+      const codVen = names[value];
+      console.log("CodVen obtenido:", codVen);
   
-
-  const handleSelect = (name) => {
-    const codVen = names[name];
-    if (codVen) {
-      const relaccionData = codVenData.find((item) => item.Codven === codVen);
-      if (relaccionData) {
-        setSeleccion(name);
-        setSelectedData({
-          CodVen: relaccionData.Codven,
-          Prefijo: relaccionData.Prefijo,
-          Consecutivo: relaccionData.Consecutivo,
-        });
-      } else {
-        console.warn(`No se encontraron datos para CodVen: ${codVen}`);
-      }
+      const relatedData = codVenData.find((item) => item.Codven === codVen);
+      console.log("Datos relacionados encontrados:", relatedData);
+  
+      setSeleccion(value);
+      setSelectedData(
+        relatedData
+          ? { 
+            CodVen: relatedData.Codven, 
+            Prefijo: relatedData.Prefijo, 
+            Consecutivo: relatedData.Consecutivo 
+          }
+          : null
+      );
+      setBoton(false);
+    } else {
+      setSeleccion("");
+      setSelectedData(null);
+      setBoton(true);
     }
-    handleCloseE();
   };
-
+  
 
   const processRowUpdate = (newRow) => {
     const index = articulosSeleccionados.findIndex((row) => row.ARTICULO === newRow.ARTICULO);
@@ -621,11 +626,8 @@ const CrearPedido = () => {
           <Button onClick={handleOpenM} variant="filled" sx={{ bgcolor: "#6cd3ec", "&:hover": { bgcolor: "#36c7e7" }, m: 2 }}>
             Productos-MG
           </Button>
-          <Button onClick={handleOpenE} variant="contained" sx={{ bgcolor: "#a449ee", "&:hover": { bgcolor: "#992be2" }, mr: 2 }}>
-            {seleccion}
-          </Button>
           <UseImportoExcel onImportData={handleImportData} />
-          <Button onClick={enviarPedido} variant="filled" sx={{ bgcolor: "#5de46f", "&:hover": { bgcolor: "#3ae92a" }, m: 2 }}>
+          <Button onClick={enviarPedido} variant="filled" sx={{ bgcolor: "#5de46f", "&:hover": { bgcolor: "#3ae92a" }, m: 2 }} disabled={boton}>
             Enviar Pedido
           </Button>
           <Button variant="filled" sx={{ bgcolor: "#f13c3c", "&:hover": { bgcolor: "#ec1c27" }, }} LinkComponent={Link} href="../../clients/">
@@ -699,51 +701,48 @@ const CrearPedido = () => {
             </Grid>
           </Grid>
 
-          <TextField
-            id="nota-factura"
-            label="Nota Factura (Doc2)"
-            variant="standard"
-            value={documento}
-            onChange={(e) => setDocumento(e.target.value)}
-            color="primary"
-            size="small"
-            sx={{ 
-              flex: 1, 
-              minWidth: "350px", 
-              maxWidth: "500px",
-              marginRight: 2,
-            }}
-          />
-          <TextField
-            id="finac"
-            label="Finac % /Días"
-            variant="standard"
-            value={finac}
-            onChange={(e) => setFinac(e.target.value)}
-            size="small"
-            sx={{ 
-              flex: 1,
-              minWidth: "150px",
-              maxWidth: "300px",
-              marginRight: 2, 
-              borderColor: "#13e2e9", 
-            }}
-          />
-          <TextField
-            id="outlined-basic"
-            label="D ´UNA"
-            variant="standard"
-            value={rubro2}
-            onChange={(e) => setRubro2(e.target.value)}
-            size="small"
-            sx={{ 
-              flex: 1, 
-              minWidth: "150px", 
-              maxWidth: "300px",
-              marginRight: 2, 
-              borderColor: "#13e96c", 
-            }}
-          />
+          <Box sx={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: 2, mt: 2 }}>
+            <TextField
+              id="nota-factura"
+              label="Nota Factura (Doc2)"
+              variant="standard"
+              value={documento}
+              onChange={(e) => setDocumento(e.target.value)}
+              color="primary"
+              size="small"
+              sx={{ minWidth: "250px",  maxWidth: "400px", }}
+              inputProps={{ maxLength: 50 }}
+            />
+            <TextField
+              id="finac"
+              label="Finac % /Días"
+              variant="standard"
+              value={finac}
+              onChange={(e) => setFinac(e.target.value)}
+              size="small"
+              sx={{  minWidth: "150px", maxWidth: "300px", }}
+              inputProps={{ maxLength: 50 }}
+            />
+            <TextField
+              id="outlined-basic"
+              label="D ´UNA"
+              variant="standard"
+              value={rubro2}
+              onChange={(e) => setRubro2(e.target.value)}
+              size="small"
+              sx={{  minWidth: "150px",   maxWidth: "300px", }}
+              inputProps={{ maxLength: 50 }}
+            />
+            <Autocomplete
+              options={Object.keys(names)}
+              value={Object.keys(names).includes(seleccion) ? seleccion : ""}
+              onChange={handleSelect}
+              disablePortal
+              size="small"
+              sx={{ width: 300 }}
+              renderInput={(params) => <TextField {...params} label="Tipo de Pedido" />}
+            />
+          </Box>
           <TextField
             id="observaciones"
             label="OBSERVACIONES"
@@ -756,6 +755,8 @@ const CrearPedido = () => {
               marginTop: 2,
               borderColor: "#13e95a",
             }}
+            inputProps={{ maxLength: 255 }}
+            
           />
         </Paper>
       </Box>
@@ -795,27 +796,6 @@ const CrearPedido = () => {
           </ButtonGroup>
         </Box>
       </Paper>
-
-      <Modal
-        open={openE}
-        onClose={handleCloseE}
-        aria-labelledby="modal-modal-title"
-        aria-describedby="modal-modal-description"
-      >
-        <Box sx={style}>
-          <Box sx={{ margin: 2 }}>
-            <h3>SELECCIONAR VENDEDOR</h3> 
-            <List>
-              {Object.keys(names).map((name) => (
-                <ListItem key={name} button="true" onClick={() => handleSelect(name)}>
-                  <Checkbox checked={seleccion === name} icon={<FavoriteBorder />} checkedIcon={<Favorite />} sx={{ color: "green", "&.Mui-checked": { color: "pink" } }} />
-                  <ListItemText primary={name} />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-        </Box>
-      </Modal>
 
       <Modal
         open={openM}

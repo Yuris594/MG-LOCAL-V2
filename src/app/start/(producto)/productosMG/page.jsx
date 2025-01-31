@@ -62,7 +62,7 @@ const productosMG = () => {
 
   const conseguirProductos = async () => {
     try {
-      const response = await fetch(Conexion.url + '/productos/listar_solo_para_mg', {
+      const response = await fetch('/api/productos/listar_solo_para_mg', {
         method: "GET",
         headers: { "Content-Type": "application/json", },
       });
@@ -112,7 +112,6 @@ const productosMG = () => {
           }
           return false;
         });
-        setArticulo(resultadosFiltrados[0]);
       }
     },
     [productos]
